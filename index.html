@@ -76,6 +76,8 @@
       background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.035));
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 12px 30px rgba(0,0,0,.3);
       font-family: 'Geist Mono', monospace;
+      font-weight: 700;
+      letter-spacing: -.08em;
     }
     .links { display:flex; align-items:center; gap: 20px; color: var(--muted); font-size: 14px; }
     .links a:hover { color: var(--text); }
@@ -187,7 +189,7 @@
     .dot { width:10px; height:10px; border-radius:999px; background: var(--red); }
     .dot:nth-child(2) { background: var(--gold); }
     .dot:nth-child(3) { background: var(--green); }
-    pre { margin:0; font: inherit; font-size: 13px; line-height:1.75; color: #b7c2cf; }
+    pre { margin:0; font: inherit; font-size: 13px; line-height:1.75; color: #b7c2cf; white-space: pre-wrap; overflow-wrap: anywhere; }
     .blue { color: var(--blue); } .gold { color: var(--gold); } .green { color: var(--green); } .red { color: var(--red); }
     footer { padding: 70px 0 42px; color: var(--muted); }
     .footer-card { padding: 28px; display:flex; justify-content:space-between; gap:24px; align-items:center; }
@@ -215,7 +217,7 @@
 <body>
   <nav class="nav" aria-label="Primary navigation">
     <div class="wrap nav-inner">
-      <a class="brand" href="#top" aria-label="PrimeOdin home"><span class="sigil">ᚱ</span><span>PrimeOdin</span></a>
+      <a class="brand" href="#top" aria-label="PrimeOdin home"><span class="sigil">PO</span><span>PrimeOdin</span></a>
       <div class="links">
         <a href="#archive">Archive</a>
         <a href="#chapters">Chapters</a>
