@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>PrimeOdin staging — protected</title>
+  <style>
+    :root{--paper:#f7f5ef;--porcelain:#fffdf8;--ink:#151513;--muted:#5f5a50;--line:#ded8ca;--lichen:#46513f}
+    *{box-sizing:border-box}body{margin:0;min-height:100svh;background:linear-gradient(180deg,var(--porcelain),var(--paper));color:var(--ink);font-family:"Avenir Next","Aptos","Segoe UI",system-ui,sans-serif}.gate{min-height:100svh;display:grid;place-items:center;padding:28px}.card{width:min(520px,100%);border:1px solid var(--line);background:rgba(255,253,248,.78);box-shadow:0 24px 80px rgba(38,34,27,.08);padding:34px}.mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid var(--ink);font-family:Georgia,serif;margin-bottom:28px}h1{font-family:Georgia,"Iowan Old Style",serif;font-weight:400;letter-spacing:-.055em;line-height:.96;font-size:clamp(42px,9vw,70px);margin:0 0 18px}p{color:var(--muted);line-height:1.55}.row{display:flex;gap:10px;margin-top:24px}input{flex:1;min-width:0;border:1px solid var(--line);background:white;color:var(--ink);padding:14px;font:inherit}button{border:1px solid var(--ink);background:var(--ink);color:var(--porcelain);padding:14px 18px;font-weight:650;cursor:pointer}.err{color:#8b2f22;min-height:24px;margin-top:14px}iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--paper)}.topbar{position:fixed;right:14px;bottom:14px;z-index:3;background:rgba(21,21,19,.86);color:white;border:0;padding:10px 12px;font-size:12px} .hidden{display:none}
+  </style>
+</head>
+<body>
+  <main class="gate" id="gate">
+    <section class="card">
+      <div class="mark">Ω</div>
+      <p>PRIVATE STAGING</p>
+      <h1>PrimeOdin review room.</h1>
+      <p>This staging copy is encrypted in the browser and marked no-index. Enter the review password to open the current bio, blog, and homepage build.</p>
+      <form class="row" id="form">
+        <input id="password" type="password" autocomplete="current-password" placeholder="Password" autofocus />
+        <button>Open</button>
+      </form>
+      <div class="err" id="err"></div>
+    </section>
+  </main>
+  <button class="topbar hidden" id="lock">Lock staging</button>
+  <iframe id="frame" class="hidden" title="PrimeOdin protected staging"></iframe>
+  <script>
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
+    const $ = id => document.getElementById(id);
+    const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+    let bundle = null;
+    function cleanPath(href){
+      try{
+        const u = new URL(href, location.href);
+        let p = u.pathname.replace(/.*\/staging\//,'').replace(/^\//,'') || 'index.html';
+        if(p.endsWith('/')) p += 'index.html';
+        return p;
+      }catch{return null}
+    }
+    async function decrypt(password){
+      const payload = await fetch('payload.json', {cache:'no-store'}).then(r=>r.json());
+      const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+      const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(payload.salt), iterations:payload.iterations, hash:'SHA-256'}, baseKey, {name:'AES-GCM', length:256}, false, ['decrypt']);
+      const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(payload.iv)}, key, b64(payload.ciphertext));
+      return JSON.parse(dec.decode(plain));
+    }
+    function openPage(path='index.html'){
+      if(!bundle.pages[path]) path='index.html';
+      const frame = $('frame');
+      frame.srcdoc = bundle.pages[path];
+      location.hash = path === 'index.html' ? '' : path;
+      frame.onload = () => {
+        const doc = frame.contentDocument;
+        doc.addEventListener('click', ev => {
+          const a = ev.target.closest && ev.target.closest('a[href]');
+          if(!a) return;
+          const href = a.getAttribute('href');
+          if(href.startsWith('#') || href.startsWith('mailto:')) return;
+          const p = cleanPath(a.href);
+          if(p && bundle.pages[p]) { ev.preventDefault(); openPage(p); }
+        });
+      };
+    }
+    $('form').addEventListener('submit', async ev => {
+      ev.preventDefault(); $('err').textContent = 'Opening…';
+      try{
+        bundle = await decrypt($('password').value);
+        sessionStorage.setItem('primeodin-stage-ok','1');
+        $('gate').classList.add('hidden'); $('frame').classList.remove('hidden'); $('lock').classList.remove('hidden');
+        openPage((location.hash||'').slice(1) || bundle.defaultPage);
+      }catch(e){ $('err').textContent = 'Wrong password or corrupted staging payload.'; }
+    });
+    $('lock').addEventListener('click',()=>{sessionStorage.removeItem('primeodin-stage-ok'); location.reload();});
+  </script>
+</body>
+</html>
