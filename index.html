@@ -1,418 +1,48 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="PrimeOdin — Rune-King retrospective archive: systems, physics, AI, resilience, and the pleasure of finding things out." />
-  <meta property="og:title" content="PrimeOdin — Rune-King in the Machine" />
-  <meta property="og:description" content="An honest retrospective technical archive: twenty-one chapters from C89 interpreters to attention, quantum circuits, resilient systems, and prompt runes." />
-  <meta property="og:type" content="website" />
-  <meta name="theme-color" content="#0a0a0b" />
-  <title>PrimeOdin — Rune-King in the Machine</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #07080a;
-      --panel: rgba(255,255,255,.055);
-      --panel-strong: rgba(255,255,255,.09);
-      --text: #f3f4f6;
-      --muted: #a8b0bd;
-      --dim: #707988;
-      --line: rgba(255,255,255,.13);
-      --frost: #c8e7ff;
-      --blue: #6ab7ff;
-      --violet: #9b7cff;
-      --gold: #d8b25e;
-      --red: #ff6257;
-      --green: #55d68b;
-      --shadow: 0 24px 80px rgba(0,0,0,.55);
-      color-scheme: dark;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: 'Geist', system-ui, -apple-system, Segoe UI, sans-serif;
-      background:
-        radial-gradient(circle at 18% 12%, rgba(106,183,255,.18), transparent 28rem),
-        radial-gradient(circle at 82% 8%, rgba(155,124,255,.18), transparent 28rem),
-        radial-gradient(circle at 50% 92%, rgba(216,178,94,.10), transparent 38rem),
-        linear-gradient(180deg, #090a0d 0%, #07080a 42%, #050506 100%);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .33;
-      background-image:
-        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: radial-gradient(circle at 50% 20%, black, transparent 72%);
-    }
-    a { color: inherit; text-decoration: none; }
-    a:focus-visible, button:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
-    .wrap { width: min(1180px, calc(100vw - 36px)); margin: 0 auto; }
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      border-bottom: 1px solid rgba(255,255,255,.09);
-      backdrop-filter: blur(18px);
-      background: rgba(7,8,10,.72);
-    }
-    .nav-inner { height: 72px; display:flex; align-items:center; justify-content:space-between; gap: 18px; }
-    .brand { display:flex; align-items:center; gap: 12px; font-weight: 600; letter-spacing: -.03em; }
-    .sigil {
-      width: 38px; height: 38px; border-radius: 12px;
-      display:grid; place-items:center;
-      color: var(--frost);
-      background: linear-gradient(145deg, rgba(255,255,255,.12), rgba(255,255,255,.035));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.16), 0 12px 30px rgba(0,0,0,.3);
-      font-family: 'Geist Mono', monospace;
-      font-weight: 700;
-      letter-spacing: -.08em;
-    }
-    .links { display:flex; align-items:center; gap: 20px; color: var(--muted); font-size: 14px; }
-    .links a:hover { color: var(--text); }
-    .button {
-      display:inline-flex; align-items:center; justify-content:center; gap: 9px;
-      min-height: 42px; padding: 0 17px;
-      border-radius: 999px;
-      background: #f4f6f8;
-      color: #090a0d;
-      font-weight: 600;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.2), 0 16px 40px rgba(255,255,255,.08);
-    }
-    .button.secondary { background: rgba(255,255,255,.06); color: var(--text); box-shadow: inset 0 0 0 1px var(--line); }
-    .hero { padding: 92px 0 56px; position: relative; }
-    .kicker {
-      width: fit-content;
-      display:flex; align-items:center; gap: 9px;
-      border-radius: 999px;
-      color: var(--frost);
-      background: rgba(200,231,255,.075);
-      box-shadow: inset 0 0 0 1px rgba(200,231,255,.18);
-      padding: 8px 12px;
-      font: 500 13px/1 'Geist Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-    .hero h1 {
-      max-width: 980px;
-      margin: 24px 0 22px;
-      font-size: clamp(54px, 9vw, 112px);
-      line-height: .88;
-      letter-spacing: -.075em;
-      font-weight: 700;
-    }
-    .gradient-text {
-      background: linear-gradient(100deg, #fff 10%, #c8e7ff 35%, #d8b25e 66%, #ffb2a9 96%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    .lede {
-      max-width: 760px;
-      color: var(--muted);
-      font-size: clamp(18px, 2vw, 23px);
-      line-height: 1.65;
-      margin: 0 0 30px;
-    }
-    .hero-actions { display:flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
-    .truth {
-      margin-top: 44px;
-      padding: 18px 20px;
-      max-width: 900px;
-      background: rgba(216,178,94,.075);
-      box-shadow: inset 0 0 0 1px rgba(216,178,94,.21);
-      border-radius: 18px;
-      color: #ead9ad;
-      line-height: 1.6;
-    }
-    .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 48px 0 14px; }
-    .stat, .card {
-      background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.036));
-      border-radius: 22px;
-      box-shadow: inset 0 0 0 1px var(--line), var(--shadow);
-    }
-    .stat { padding: 20px; min-height: 116px; }
-    .stat b { display:block; font-size: 34px; letter-spacing: -.04em; }
-    .stat span { color: var(--muted); font-size: 14px; line-height: 1.45; }
-    section { padding: 70px 0; }
-    .section-head { display:flex; justify-content:space-between; gap: 24px; align-items:end; margin-bottom: 24px; }
-    .section-head h2 { margin:0; font-size: clamp(34px, 5vw, 64px); line-height: .95; letter-spacing: -.06em; }
-    .section-head p { margin:0; max-width: 520px; color: var(--muted); line-height: 1.65; }
-    .timeline { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .era { padding: 24px; min-height: 246px; }
-    .era .years { color: var(--gold); font: 600 13px/1 'Geist Mono', monospace; letter-spacing:.08em; text-transform: uppercase; }
-    .era h3 { margin: 16px 0 12px; font-size: 26px; letter-spacing:-.04em; }
-    .era p { margin:0; color: var(--muted); line-height:1.65; }
-    .repo-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .repo {
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.045);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.105);
-      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
-      min-height: 142px;
-    }
-    .repo:hover { transform: translateY(-2px); background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px rgba(200,231,255,.25), 0 20px 50px rgba(0,0,0,.25); }
-    .repo-top { display:flex; justify-content:space-between; gap: 8px; align-items:start; }
-    .repo h3 { margin: 0; font-size: 18px; letter-spacing:-.025em; }
-    .year { color: var(--frost); font: 500 12px/1 'Geist Mono', monospace; padding: 6px 8px; border-radius:999px; background: rgba(200,231,255,.08); }
-    .repo p { color: var(--muted); line-height:1.55; font-size: 14px; margin: 14px 0 0; }
-    .manifesto { display:grid; grid-template-columns: .9fr 1.1fr; gap: 14px; align-items:stretch; }
-    .quote { padding: 32px; display:flex; flex-direction:column; justify-content:space-between; min-height: 360px; }
-    .quote blockquote { margin:0; font-size: clamp(28px, 4vw, 48px); line-height:1.05; letter-spacing:-.06em; font-weight: 600; }
-    .quote cite { color: var(--muted); font-style: normal; margin-top: 28px; }
-    .values { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .value { padding: 22px; border-radius: 18px; background: rgba(255,255,255,.045); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
-    .value b { display:block; margin-bottom: 10px; }
-    .value span { color: var(--muted); line-height:1.55; font-size:14px; }
-    .terminal {
-      padding: 22px;
-      border-radius: 22px;
-      background: #050608;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 24px 80px rgba(0,0,0,.45);
-      font-family: 'Geist Mono', monospace;
-      color: #dce7ef;
-      overflow:auto;
-    }
-    .terminal .bar { display:flex; gap:7px; margin-bottom:18px; }
-    .dot { width:10px; height:10px; border-radius:999px; background: var(--red); }
-    .dot:nth-child(2) { background: var(--gold); }
-    .dot:nth-child(3) { background: var(--green); }
-    pre { margin:0; font: inherit; font-size: 13px; line-height:1.75; color: #b7c2cf; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .blue { color: var(--blue); } .gold { color: var(--gold); } .green { color: var(--green); } .red { color: var(--red); }
-
-    .artifact-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .artifact, .journal, .correspondence { padding: 22px; border-radius: 18px; background: rgba(255,255,255,.045); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
-    .artifact h3, .journal h3, .correspondence h3 { margin: 0 0 10px; font-size: 20px; letter-spacing:-.025em; }
-    .artifact p, .journal p, .correspondence p { color: var(--muted); line-height:1.62; font-size: 14px; margin: 0; }
-    .journal-grid, .correspondence-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .long-note { margin-top: 18px; padding: 22px; border-radius: 18px; background: rgba(216,178,94,.065); box-shadow: inset 0 0 0 1px rgba(216,178,94,.18); color: #ead9ad; line-height:1.65; }
-    footer { padding: 70px 0 42px; color: var(--muted); }
-    .footer-card { padding: 28px; display:flex; justify-content:space-between; gap:24px; align-items:center; }
-    .footer-card h2 { margin:0 0 8px; font-size: 34px; letter-spacing:-.05em; }
-    .footer-card p { margin:0; line-height:1.6; }
-    @media (max-width: 920px) {
-      .links { display:none; }
-      .stats, .timeline, .repo-grid, .manifesto, .artifact-grid, .journal-grid, .correspondence-grid { grid-template-columns: 1fr; }
-      .section-head { display:block; }
-      .section-head p { margin-top: 14px; }
-      .values { grid-template-columns: 1fr; }
-      .footer-card { display:block; }
-      .footer-card .hero-actions { margin-top: 20px; }
-    }
-    @media (max-width: 520px) {
-      .hero { padding-top: 58px; }
-      .hero h1 { font-size: 52px; }
-      .nav-inner { height: 62px; }
-      .button { width: 100%; }
-      .hero-actions { width: 100%; }
-      .truth { font-size: 14px; }
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PrimeOdin is a public retrospective archive of systems, simulation, machine learning, resilience, and governed autonomy.">
+  <meta name="theme-color" content="#e7e0d2">
+  <title>PrimeOdin</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <nav class="nav" aria-label="Primary navigation">
-    <div class="wrap nav-inner">
-      <a class="brand" href="#top" aria-label="PrimeOdin home"><span class="sigil">PO</span><span>PrimeOdin</span></a>
-      <div class="links">
-        <a href="#archive">Archive</a>
-        <a href="#chapters">Chapters</a>
-        <a href="#code">Run it</a>
-        <a href="#origins">Origins</a>
-        <a href="#artifacts">Artifacts</a>
-        <a href="#journals">Journals</a>
-        <a href="blog/index.html">Blog</a>
-        <a href="https://github.com/primeodin">GitHub</a>
-      </div>
-    </div>
-  </nav>
-
-  <main id="top">
-    <section class="hero">
-      <div class="wrap">
-        <div class="kicker">Retrospective archive · 2003–2023</div>
-        <h1>Rune-King in the <span class="gradient-text">machine</span>.</h1>
-        <p class="lede">A public technical landing page for PrimeOdin: systems, simulation, learning machines, resilience, and the old joy of taking the universe apart carefully enough to put one useful piece back together.</p>
-        <div class="hero-actions">
-          <a class="button" href="https://github.com/primeodin">Enter the GitHub archive</a>
-          <a class="button secondary" href="#chapters">Read the twenty-one chapters</a>
-          <a class="button secondary" href="PRIMEODIN_EXPANSION.md">Full expansion notes</a>
-          <a class="button secondary" href="blog/index.html">Read the blog</a>
-        </div>
-        <div class="truth">
-          <strong>Honest myth, not counterfeit history.</strong> The archive is a later reconstruction of a 2003–2023 technical arc: period-aware code, runnable examples, explicit notes, and no claim that these repositories lived publicly in those years. Legends are stronger when the provenance is clean.
-        </div>
-        <div class="stats" aria-label="Archive summary">
-          <div class="stat"><b>21</b><span>public repositories, one chapter per year</span></div>
-          <div class="stat"><b>2003</b><span>C89 interpreters, hand parsers, first runes</span></div>
-          <div class="stat"><b>2023</b><span>chronicles, maps, attention, prompt craft</span></div>
-          <div class="stat"><b>1</b><span>rule: the rune must hold when winter comes</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="archive">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>The road through frost.</h2>
-          <p>Not a portfolio of shiny surfaces. A map of pressure, mistakes, abstractions, and small working machines: C89, fixed-function graphics habits, Monte Carlo notebooks, EC2 weather, attention masks, and prompt contracts.</p>
-        </div>
-        <div class="timeline">
-          <article class="card era"><div class="years">2003–2008</div><h3>Metal, motion, chalkboard fire</h3><p>C89, C++, memory, Monte Carlo paths, game loops, and the first diagrams where physics started to look like code with better manners.</p></article>
-          <article class="card era"><div class="years">2009–2014</div><h3>Decisions, entropy, lessons, cloud weather</h3><p>Utility AI, compression experiments, numerical lectures, neural nets, parallel loops, and the first tools for keeping a small kingdom alive on remote machines.</p></article>
-          <article class="card era"><div class="years">2015–2023</div><h3>Deep winters, agents, qubits, voice</h3><p>Deep learning, evolutionary search, reinforcement learning, quantum circuits, resilient services, attention, prompt runes, and a capstone map of the whole path.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section id="chapters">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Twenty-one chapters.</h2>
-          <p>Each repository is a small doorway. Enter through the year that calls to you; leave with a cleaner invariant.</p>
-        </div>
-        <div class="repo-grid">
-          <a class="repo" href="https://github.com/primeodin/runeweaver-c"><div class="repo-top"><h3>runeweaver-c</h3><span class="year">2003</span></div><p>C89 rune-script interpreter: constants, variables, arithmetic, and first winter machine words.</p></a>
-          <a class="repo" href="https://github.com/primeodin/freljord-engine"><div class="repo-top"><h3>freljord-engine</h3><span class="year">2004</span></div><p>Rigid-body experiments where collision stability begins to feel like a battle meter.</p></a>
-          <a class="repo" href="https://github.com/primeodin/path-integral-montecarlo"><div class="repo-top"><h3>path-integral-montecarlo</h3><span class="year">2005</span></div><p>Path-integral Monte Carlo sketches, convergence traces, and ASCII smoke trails.</p></a>
-          <a class="repo" href="https://github.com/primeodin/undying-allocator"><div class="repo-top"><h3>undying-allocator</h3><span class="year">2006</span></div><p>Arena allocation, guard words, high-water marks, and stubborn survival under load.</p></a>
-          <a class="repo" href="https://github.com/primeodin/rage-simulator"><div class="repo-top"><h3>rage-simulator</h3><span class="year">2007</span></div><p>A tiny game loop proving resource systems are physics wearing another helmet.</p></a>
-          <a class="repo" href="https://github.com/primeodin/feynman-viz"><div class="repo-top"><h3>feynman-viz</h3><span class="year">2008</span></div><p>Vector-minded Feynman diagrams as a love letter to clear thought and clean lines.</p></a>
-          <a class="repo" href="https://github.com/primeodin/barbarian-ai"><div class="repo-top"><h3>barbarian-ai</h3><span class="year">2009</span></div><p>Java utility AI for a lone warrior in a text arena: old OOP, proto-RL spirit.</p></a>
-          <a class="repo" href="https://github.com/primeodin/entropy-forge"><div class="repo-top"><h3>entropy-forge</h3><span class="year">2010</span></div><p>Compression, entropy, and information-theoretic rune forging.</p></a>
-          <a class="repo" href="https://github.com/primeodin/lectures-on-computing"><div class="repo-top"><h3>lectures-on-computing</h3><span class="year">2011</span></div><p>Numerical lessons: read, run, alter, understand — teaching as proof.</p></a>
-          <a class="repo" href="https://github.com/primeodin/neural-rage"><div class="repo-top"><h3>neural-rage</h3><span class="year">2012</span></div><p>From-scratch NumPy backprop learning synthetic battle outcomes.</p></a>
-          <a class="repo" href="https://github.com/primeodin/parallel-rage"><div class="repo-top"><h3>parallel-rage</h3><span class="year">2013</span></div><p>pthread/OpenMP-flavored simulation where the rage must not drop a frame.</p></a>
-          <a class="repo" href="https://github.com/primeodin/cloud-rune"><div class="repo-top"><h3>cloud-rune</h3><span class="year">2014</span></div><p>Dry-run deployment tooling for carrying old engines into EC2-style weather.</p></a>
-          <a class="repo" href="https://github.com/primeodin/deep-freljord"><div class="repo-top"><h3>deep-freljord</h3><span class="year">2015</span></div><p>Deep-learning sketches for rune rubbings, with hyperparameter scars intact.</p></a>
-          <a class="repo" href="https://github.com/primeodin/optimization-king"><div class="repo-top"><h3>optimization-king</h3><span class="year">2016</span></div><p>Evolutionary strategies and particle swarms as population-level search.</p></a>
-          <a class="repo" href="https://github.com/primeodin/rl-undying"><div class="repo-top"><h3>rl-undying</h3><span class="year">2017</span></div><p>A Gym-like environment where rage modulates reward and survival.</p></a>
-          <a class="repo" href="https://github.com/primeodin/quantum-rune"><div class="repo-top"><h3>quantum-rune</h3><span class="year">2018</span></div><p>Matrix-based quantum circuits with ASCII spells and Freljord-flavored gates.</p></a>
-          <a class="repo" href="https://github.com/primeodin/legacy-bridge"><div class="repo-top"><h3>legacy-bridge</h3><span class="year">2019</span></div><p>Then-vs-now modernization patterns: respect the scar, sharpen the interface.</p></a>
-          <a class="repo" href="https://github.com/primeodin/resilient-kingdom"><div class="repo-top"><h3>resilient-kingdom</h3><span class="year">2020</span></div><p>Self-healing service skeletons, circuit breakers, and rage-meter metrics.</p></a>
-          <a class="repo" href="https://github.com/primeodin/attention-warrior"><div class="repo-top"><h3>attention-warrior</h3><span class="year">2021</span></div><p>An educational Transformer implementation: attention as disciplined focus.</p></a>
-          <a class="repo" href="https://github.com/primeodin/prompt-rune"><div class="repo-top"><h3>prompt-rune</h3><span class="year">2022</span></div><p>Prompt steering utilities for preserving voice without pretending myth is history.</p></a>
-          <a class="repo" href="https://github.com/primeodin/primeodin-chronicles"><div class="repo-top"><h3>primeodin-chronicles</h3><span class="year">2023</span></div><p>The capstone timeline and rune map tying all twenty-one chapters together.</p></a>
-        </div>
-      </div>
-    </section>
-
-    <section id="code">
-      <div class="wrap manifesto">
-        <article class="card quote">
-          <blockquote>“A rune is just an invariant with poetry on it.”</blockquote>
-          <cite>Rage is energy under governance. A kingdom is a system with people depending on it.</cite>
-        </article>
-        <div class="terminal" aria-label="Example terminal session">
-          <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-<pre><span class="dim">$</span> git clone https://github.com/primeodin/primeodin-chronicles
-<span class="dim">$</span> cd primeodin-chronicles
-<span class="dim">$</span> ./scripts/smoke.sh
-
-<span class="green">✓</span> timeline loaded
-<span class="green">✓</span> rune map linked
-<span class="green">✓</span> archive note present
-<span class="gold">→</span> next winter awaits
-
-<span class="blue">principle</span> = "small examples, clear failures, honest provenance"
-<span class="red">warning</span>   = "never confuse myth with counterfeit history"</pre>
-        </div>
-      </div>
-    </section>
-
-    <section id="origins">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Before the runes.</h2>
-          <p>The early control loop was not a compiler. It was games, typing drills, latency, fog of war, cooldowns, recoil, and the little mercy of a checkpoint placed by someone who understood failure.</p>
-        </div>
-        <div class="repo-grid">
-          <div class="repo"><div class="repo-top"><h3>StarCraft</h3><span class="year">RTS</span></div><p>A system can fail before the fight begins. A late depot or missed scout only lets the battle perform the debt already written into the economy.</p></div>
-          <div class="repo"><div class="repo-top"><h3>Warcraft III custom maps</h3><span class="year">SCRIPT</span></div><p>Broken triggers passed through forums with half an explanation and three new bugs. Code without context becomes folklore too quickly.</p></div>
-          <div class="repo"><div class="repo-top"><h3>Dota Allstars</h3><span class="year">COOLDOWN</span></div><p>You can have the right ability and still lose because you spent it at the wrong time. Rage is useful only when governed.</p></div>
-          <div class="repo"><div class="repo-top"><h3>Counter-Strike</h3><span class="year">LATENCY</span></div><p>Angles, economy rounds, recoil discipline, and the truth that milliseconds become architecture before anyone gives you the word architecture.</p></div>
-          <div class="repo"><div class="repo-top"><h3>Mario / Crash / Prince</h3><span class="year">RECOVERY</span></div><p>The jump is not only the arc. It is the punishment, the retry, the tiny forgiveness window, and the hand learning before the mouth has a theory.</p></div>
-          <div class="repo"><div class="repo-top"><h3>Typing drills</h3><span class="year">INPUT</span></div><p>Thought has to pass through the hands. If the hands are sloppy, the idea arrives damaged. C made that lesson permanent.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="artifacts">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Found artifacts.</h2>
-          <p>Reconstructed textures, not counterfeit proof: notebook pages, source printouts, screenshots, diagrams, and correspondence a person like this might have kept because the object held a rule better than memory did.</p>
-        </div>
-        <div class="artifact-grid">
-          <article class="artifact"><h3>runeweaver notebook page, 2003</h3><p>A torn spiral notebook page with a tiny grammar for let, print, arithmetic, and parentheses. A coffee ring cuts through a stack diagram. In the corner: "do not add loops until errors tell the truth."</p></article>
-          <article class="artifact"><h3>freljord engine screenshot, 2004</h3><p>A 640x480 fixed-function OpenGL test scene: colored boxes, crude winter-blue background, collision normals too bright, and a frame counter ugly enough to be trusted.</p></article>
-          <article class="artifact"><h3>PIMC rain printout, 2005</h3><p>Convergence traces on cheap paper, wrinkled from rain. A bus ticket marks the page. The legend is corrected by hand from "energy" to "estimated energy."</p></article>
-          <article class="artifact"><h3>allocator red ink, 2006</h3><p>A C source printout with red circles around free(ptr): "not done until the table forgets it too." The memory map looks like a small burial ground.</p></article>
-          <article class="artifact"><h3>java arena terminal, 2009</h3><p>TURN 041. score flee=0.72. score attack=0.64. A sticky note says: "when the agent panics, check the map, not the courage."</p></article>
-          <article class="artifact"><h3>attention mask photo, 2021</h3><p>A triangular mask on a whiteboard. B x H x T x T. The bug was not the math. The bug was the shape I lied about.</p></article>
-        </div>
-        <div class="long-note">The full artifact descriptions, Grok Imagine prompts, journals, correspondence, posts, and runnable examples are preserved in <a href="PRIMEODIN_EXPANSION.md">PRIMEODIN_EXPANSION.md</a>.</div>
-      </div>
-    </section>
-
-    <section id="journals">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Winter journals.</h2>
-          <p>Failures and reflections from the reconstructed archive. They are written as memory with caveats, not as recovered public proof.</p>
-        </div>
-        <div class="journal-grid">
-          <article class="journal"><h3>2006-12-16</h3><p>If it matters twice, it gets a name. That felt too grand for a cardboard drawer full of switches. Maybe the problem is grandeur without screws in it.</p></article>
-          <article class="journal"><h3>2010-01-08</h3><p>The best systems I trust are not clever first. They are legible first. Ownership means knowing where the spare cable is because you promised the demo would work.</p></article>
-          <article class="journal"><h3>2014-02-03</h3><p>The deploy failed for a stupid reason, which is to say, a real reason. We shipped our assumptions to the shell and the shell sent them back.</p></article>
-          <article class="journal"><h3>2018-11-24</h3><p>Quantum makes me want to talk too much. The math is already strange. It does not need my frost on it.</p></article>
-          <article class="journal"><h3>2022-12-29</h3><p>Agents are not magic. This is good news. Magic would be another way to avoid responsibility.</p></article>
-          <article class="journal"><h3>Note on memory</h3><p>Memory is not a database. It is snow with footprints in it. Dates mark the chapter being studied, not a claim of public release.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="wrap">
-        <div class="section-head">
-          <h2>What holds.</h2>
-          <p>The archive has a voice, but the voice is not decoration. It is a way to remember why engineering discipline matters.</p>
-        </div>
-        <div class="values">
-          <div class="value"><b>Small runnable examples</b><span>A tiny program that fails clearly teaches more than a cathedral nobody can enter.</span></div>
-          <div class="value"><b>Period-aware craft</b><span>Old code should respect old constraints. Modern code should earn modern abstractions.</span></div>
-          <div class="value"><b>Honest myth</b><span>Metaphor may carry truth, but it must never counterfeit provenance.</span></div>
-          <div class="value"><b>Resilience first</b><span>The rune that matters is the one that holds when the winter comes.</span></div>
-        </div>
-      </div>
-    </section>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <nav class="nav" aria-label="Primary navigation"><div class="wrap nav-inner"><a class="brand" href="#top"><span class="sigil" aria-hidden="true">PO</span><span>PrimeOdin</span></a><div class="links"><a href="#archive">Archive</a><a href="#chapters">Repos</a><a href="#operating-notes">Notes</a><a href="blog/">Blog</a><a href="https://github.com/primeodin">GitHub</a></div></div></nav>
+  <main id="main">
+    <header id="top" class="hero"><div class="wrap deck"><div><p class="kicker">Public archive · rebuilt honestly</p><h1>PrimeOdin, plainly rebuilt.</h1><p class="lede">A technical archive about small programs, broken loops, winter systems, and saying plainly what was reconstructed.</p><div class="actions"><a class="button" href="https://github.com/primeodin">Open GitHub</a><a class="button secondary" href="blog/">Read the blog</a></div></div><aside class="note-card"><strong>Provenance note.</strong><br>This is a later reconstruction of a 2003–2023 technical arc. The code is meant to be read and run. The voice can be strange. The provenance stays plain.</aside></div></header>
+    <section id="archive"><div class="wrap"><div class="section-head"><h2>The archive is a map, not a costume.</h2><p>Twenty-one public repositories trace the shape of an operator: C, physics, numerical work, learning machines, cloud scars, resilience, attention, and prompt craft.</p></div><div class="ledger" aria-label="Archive facts"><div><b>21</b><span>public repos</span></div><div><b>2003</b><span>first chapter</span></div><div><b>2023</b><span>capstone map</span></div><div><b>0</b><span>fake old public history</span></div></div></div></section>
+    <section id="chapters"><div class="wrap"><div class="section-head"><h2>The twenty-one chapters.</h2><p>Each repo is small on purpose. A thing you can inspect beats a grand claim you cannot run.</p></div><div class="repo-list"><a class="repo" href="https://github.com/primeodin/runeweaver-c"><div class="repo-top"><h3>runeweaver-c</h3><span class="year">2003</span></div><p>A small C interpreter for constants, variables, and arithmetic.</p></a>
+<a class="repo" href="https://github.com/primeodin/freljord-engine"><div class="repo-top"><h3>freljord-engine</h3><span class="year">2004</span></div><p>Rigid body sketches, collision notes, and the first useful failures.</p></a>
+<a class="repo" href="https://github.com/primeodin/path-integral-montecarlo"><div class="repo-top"><h3>path-integral-montecarlo</h3><span class="year">2005</span></div><p>Monte Carlo experiments with convergence traces you can inspect.</p></a>
+<a class="repo" href="https://github.com/primeodin/undying-allocator"><div class="repo-top"><h3>undying-allocator</h3><span class="year">2006</span></div><p>Arena allocation, guard words, and high water marks under load.</p></a>
+<a class="repo" href="https://github.com/primeodin/rage-simulator"><div class="repo-top"><h3>rage-simulator</h3><span class="year">2007</span></div><p>A tiny game loop for resource pressure and recovery.</p></a>
+<a class="repo" href="https://github.com/primeodin/feynman-viz"><div class="repo-top"><h3>feynman-viz</h3><span class="year">2008</span></div><p>Vector diagrams for explaining particles without burying the reader.</p></a>
+<a class="repo" href="https://github.com/primeodin/barbarian-ai"><div class="repo-top"><h3>barbarian-ai</h3><span class="year">2009</span></div><p>Utility AI in a text arena. Simple enough to read in one sitting.</p></a>
+<a class="repo" href="https://github.com/primeodin/entropy-forge"><div class="repo-top"><h3>entropy-forge</h3><span class="year">2010</span></div><p>Compression and entropy notebooks with runnable command line examples.</p></a>
+<a class="repo" href="https://github.com/primeodin/lectures-on-computing"><div class="repo-top"><h3>lectures-on-computing</h3><span class="year">2011</span></div><p>Short numerical lessons: read, run, alter, understand.</p></a>
+<a class="repo" href="https://github.com/primeodin/neural-rage"><div class="repo-top"><h3>neural-rage</h3><span class="year">2012</span></div><p>From-scratch NumPy backprop for synthetic battle outcomes.</p></a>
+<a class="repo" href="https://github.com/primeodin/parallel-rage"><div class="repo-top"><h3>parallel-rage</h3><span class="year">2013</span></div><p>Threaded simulation experiments where speed cannot corrupt state.</p></a>
+<a class="repo" href="https://github.com/primeodin/cloud-rune"><div class="repo-top"><h3>cloud-rune</h3><span class="year">2014</span></div><p>Dry-run deployment tools for carrying old code into cloud weather.</p></a>
+<a class="repo" href="https://github.com/primeodin/deep-freljord"><div class="repo-top"><h3>deep-freljord</h3><span class="year">2015</span></div><p>Small deep learning sketches, including the awkward tuning notes.</p></a>
+<a class="repo" href="https://github.com/primeodin/optimization-king"><div class="repo-top"><h3>optimization-king</h3><span class="year">2016</span></div><p>Evolutionary strategies and particle swarms for plain search problems.</p></a>
+<a class="repo" href="https://github.com/primeodin/rl-undying"><div class="repo-top"><h3>rl-undying</h3><span class="year">2017</span></div><p>A Gym-like environment for survival, reward, and rage control.</p></a>
+<a class="repo" href="https://github.com/primeodin/quantum-rune"><div class="repo-top"><h3>quantum-rune</h3><span class="year">2018</span></div><p>Matrix-based quantum circuits with ASCII output and no ceremony.</p></a>
+<a class="repo" href="https://github.com/primeodin/legacy-bridge"><div class="repo-top"><h3>legacy-bridge</h3><span class="year">2019</span></div><p>Modernization patterns that keep the useful scar tissue visible.</p></a>
+<a class="repo" href="https://github.com/primeodin/resilient-kingdom"><div class="repo-top"><h3>resilient-kingdom</h3><span class="year">2020</span></div><p>Circuit breakers, health checks, and service recovery drills.</p></a>
+<a class="repo" href="https://github.com/primeodin/attention-warrior"><div class="repo-top"><h3>attention-warrior</h3><span class="year">2021</span></div><p>A readable transformer implementation focused on attention mechanics.</p></a>
+<a class="repo" href="https://github.com/primeodin/prompt-rune"><div class="repo-top"><h3>prompt-rune</h3><span class="year">2022</span></div><p>Prompt utilities for voice, constraints, and honest provenance.</p></a>
+<a class="repo" href="https://github.com/primeodin/primeodin-chronicles"><div class="repo-top"><h3>primeodin-chronicles</h3><span class="year">2023</span></div><p>The map: timeline, notes, and links across the archive.</p></a></div></div></section>
+    <section id="operating-notes"><div class="wrap split"><div><p class="eyebrow">Operating notes</p><blockquote class="quote">A rune is just an invariant with poetry on it.</blockquote></div><div class="tiles"><article class="tile"><h3>Honest myth</h3><p>Use the character. Keep the receipt. The archive works because the provenance is explicit.</p></article><article class="tile"><h3>Small examples</h3><p>Readable code, smoke tests, and obvious failure modes. No big claims without a command.</p></article><article class="tile"><h3>Winter bias</h3><p>Prefer systems that recover, degrade, and explain themselves when the weather turns.</p></article><article class="tile"><h3>Board and machine</h3><p>Human judgment sets the charter. Machines carry the work, report evidence, and stop at gates.</p></article></div></div></section>
+    <section id="blog"><div class="wrap"><div class="section-head"><h2>The first field notes.</h2><p>The blog starts with governance, launch discipline, and memory. These are the beams before the ornaments.</p></div><div class="blog-list"><article class="post-card"><p class="eyebrow">Foundational essay</p><h3><a href="blog/the-board-and-the-machine.html">The board and the machine</a></h3><p>Judgment stays with the board. Machines execute inside a charter.</p></article>
+<article class="post-card"><p class="eyebrow">Foundational essay</p><h3><a href="blog/private-until-the-altar-is-ready.html">Private until the altar is ready</a></h3><p>A launch is a threshold. The work should stand before the gate opens.</p></article>
+<article class="post-card"><p class="eyebrow">Foundational essay</p><h3><a href="blog/memory-is-the-first-institution.html">Memory is the first institution</a></h3><p>A system earns trust when it remembers the promises it must not trade away.</p></article></div></div></section>
+    <section id="code"><div class="wrap"><div class="section-head"><h2>Run one thing before believing the story.</h2><p>Clone a chapter. Run its smoke script. Change a number. If the idea cannot survive contact with a terminal, it is decoration.</p></div><div class="terminal" role="region" aria-label="Example terminal commands"><pre>git clone https://github.com/primeodin/runeweaver-c
+cd runeweaver-c
+./scripts/smoke.sh</pre></div></div></section>
   </main>
-
-  <footer>
-    <div class="wrap">
-      <div class="card footer-card">
-        <div>
-          <h2>The last rune.</h2>
-          <p>The archive still answers. Small patches welcome. Large claims require evidence. The poetry is optional. The invariant is not.</p>
-        </div>
-        <div class="hero-actions">
-          <a class="button" href="https://github.com/primeodin">GitHub Profile</a>
-          <a class="button secondary" href="https://github.com/primeodin/primeodin-chronicles">Capstone</a>
-          <a class="button secondary" href="PRIMEODIN_EXPANSION.md">Expansion notes</a>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <footer class="footer"><div class="wrap footer-card"><div><h2>PrimeOdin</h2><p>Public archive on GitHub Pages. No custom domain. No soft-focus origin story.</p></div><div class="actions"><a class="button secondary" href="blog/">Blog</a><a class="button" href="https://github.com/primeodin">GitHub</a></div></div></footer>
 </body>
 </html>
