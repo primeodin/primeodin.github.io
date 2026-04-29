@@ -9,3 +9,5 @@ This is an honest retrospective front door for the 21 public archive repositorie
 Additional notes:
 
 - `CHARACTER_ARC_NOTES.md` — gaming/input-loop influences behind the PrimeOdin character arc: typing, platformers, RTS, MOBAs, shooters, and internet absurdity as systems memory.
+
+Blog: https://primeodin.github.io/blog/
